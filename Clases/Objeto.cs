@@ -16,7 +16,7 @@ namespace Opentk_2222.Clases
         public Vector3 Posicion { get; set; }
         public Vector3 Rotacion { get; set; }
         public Vector3 Escala { get; set; }
-        public Vector3 ColorBase { get; set; } // Color base del objeto
+        public Vector3 ColorBase { get; set; }
 
         public Objeto(string nombre)
         {
@@ -26,7 +26,7 @@ namespace Opentk_2222.Clases
             Posicion = Vector3.Zero;
             Rotacion = Vector3.Zero;
             Escala = Vector3.One;
-            ColorBase = Vector3.One; // Blanco por defecto
+            ColorBase = Vector3.One;
         }
 
         public void AgregarParte(Parte parte)
@@ -67,18 +67,6 @@ namespace Opentk_2222.Clases
             CentroMasa = Punto.CalcularCentroMasa(centrosMasa);
         }
 
-        public Matrix4 GetMatrizTransformacion()
-        {
-            Matrix4 translation = Matrix4.CreateTranslation(Posicion);
-            Matrix4 rotationX = Matrix4.CreateRotationX(Rotacion.X);
-            Matrix4 rotationY = Matrix4.CreateRotationY(Rotacion.Y);
-            Matrix4 rotationZ = Matrix4.CreateRotationZ(Rotacion.Z);
-            Matrix4 scale = Matrix4.CreateScale(Escala);
-
-            return translation * rotationZ * rotationY * rotationX * scale;
-        }
-
-        // Método para obtener todos los vértices del objeto para rendering
         public List<float> ObtenerVerticesParaRender()
         {
             var vertices = new List<float>();
@@ -93,7 +81,6 @@ namespace Opentk_2222.Clases
                         vertices.Add(vertice.Y);
                         vertices.Add(vertice.Z);
 
-                        // Agregar normal calculada
                         var normal = cara.CalcularNormal();
                         vertices.Add(normal.X);
                         vertices.Add(normal.Y);
@@ -105,7 +92,6 @@ namespace Opentk_2222.Clases
             return vertices;
         }
 
-        // Método para obtener todos los índices del objeto para rendering
         public List<uint> ObtenerIndicesParaRender()
         {
             var indices = new List<uint>();
@@ -126,7 +112,6 @@ namespace Opentk_2222.Clases
             return indices;
         }
 
-        // Método para obtener el color efectivo de una parte específica
         public Vector3 ObtenerColorParte(string nombreParte)
         {
             var parte = BuscarParte(nombreParte);

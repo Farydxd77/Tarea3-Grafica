@@ -7,7 +7,7 @@ using OpenTK.Mathematics;
 
 namespace Opentk_2222.Clases
 {
-    public class Poligono // Representa una Cara
+    public class Poligono
     {
         public List<Punto> Vertices { get; set; }
         public List<uint> Indices { get; set; }
@@ -47,7 +47,6 @@ namespace Opentk_2222.Clases
             CentroMasa = Punto.CalcularCentroMasa(Vertices);
         }
 
-        // Método para obtener la normal de la cara (útil para iluminación)
         public Vector3 CalcularNormal()
         {
             if (Vertices.Count < 3) return Vector3.UnitY;
@@ -56,16 +55,13 @@ namespace Opentk_2222.Clases
             Vector3 v2 = Vertices[2].ToVector3() - Vertices[0].ToVector3();
             Vector3 normal = Vector3.Cross(v1, v2);
 
-
             return normal.LengthSquared > 0 ? Vector3.Normalize(normal) : Vector3.UnitY;
         }
 
-        // Método para crear una cara cuadrada (útil para cubos)
         public static Poligono CrearCaraCuadrada(Punto p1, Punto p2, Punto p3, Punto p4)
         {
-
             if (p1 == null || p2 == null || p3 == null || p4 == null)
-               throw new ArgumentNullException("Ningún punto puede ser null");
+                throw new ArgumentNullException("Ningún punto puede ser null");
 
             var cara = new Poligono();
 
@@ -74,33 +70,17 @@ namespace Opentk_2222.Clases
             cara.AgregarVertice(p3);
             cara.AgregarVertice(p4);
 
-            // Indices para formar dos triángulos
             cara.AgregarIndices(0, 1, 2);
             cara.AgregarIndices(2, 3, 0);
 
             return cara;
         }
 
-        // Método para crear una cara triangular
-        public static Poligono CrearCaraTriangular(Punto p1, Punto p2, Punto p3)
-        {
-            var cara = new Poligono();
-
-            cara.AgregarVertice(p1);
-            cara.AgregarVertice(p2);
-            cara.AgregarVertice(p3);
-
-            cara.AgregarIndices(0, 1, 2);
-
-            return cara;
-        }
-        
         public void Limpiar()
         {
             Vertices.Clear();
             Indices.Clear();
             CentroMasa = new Punto(0, 0, 0);
         }
-
     }
 }

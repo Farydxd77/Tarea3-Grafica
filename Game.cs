@@ -1,259 +1,199 @@
-﻿using OpenTK.Graphics.OpenGL4;
+﻿// ===================== Game.cs SÚPER SIMPLE =====================
+using OpenTK.Graphics.OpenGL4;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using Opentk_2222.Clases;
-using Opentk_2222.Configuration;
-using Opentk_2222.Builders;
 
 namespace Opentk_2222
 {
     internal class Game : GameWindow
     {
-        // Configuración cargada desde archivo
-        private readonly GameConfig config;
-
-        // Componentes principales
+        // Variables simples - sin config externa
         private Escenario escenario;
         private Dictionary<string, ObjectRenderData> renderObjects;
-
-        // Rendering
         private int shaderProgram;
-        private CameraSettings camera;
-        private LightingSettings lighting;
+        private Vector3 cameraPos = new(3f, 2f, 4f);
+        private Vector3 cameraTarget = new(0f, -0.5f, 0f);
+        private Vector3 lightPos = new(2f, 4f, 2f);
         private float rotationTime;
 
+        // Configuración directa en el constructor
         public Game() : base(
             GameWindowSettings.Default,
-            CreateWindowSettings())
-        {
-            // Cargar configuración al inicializar
-            config = ConfigManager.Instance;
-
-            Console.WriteLine("Configuración cargada:");
-            Console.WriteLine($"- Resolución: {config.Rendering.WindowWidth}x{config.Rendering.WindowHeight}");
-            Console.WriteLine($"- Velocidad de rotación: {config.Rendering.RotationSpeed}");
-            Console.WriteLine($"- Velocidad de cámara: {config.Camera.MovementSpeed}");
-
-            CenterWindow();
-        }
-
-        private static NativeWindowSettings CreateWindowSettings()
-        {
-            var config = ConfigManager.Instance;
-            return new NativeWindowSettings
+            new NativeWindowSettings
             {
-                Size = new Vector2i(config.Rendering.WindowWidth, config.Rendering.WindowHeight),
-                Title = config.Rendering.WindowTitle,
+                Size = new Vector2i(1024, 768),
+                Title = "Setup de Computadora 3D",
                 WindowState = WindowState.Normal
-            };
+            })
+        {
+            CenterWindow();
         }
 
         protected override void OnLoad()
         {
             base.OnLoad();
 
-            ConfigurarOpenGL();
+            // Setup OpenGL
+            GL.Enable(EnableCap.DepthTest);
+            GL.Enable(EnableCap.CullFace);
+            GL.CullFace(CullFaceMode.Back);
+            GL.ClearColor(0.95f, 0.95f, 0.95f, 1.0f);
+
+            // Crear shaders
             InicializarShaders();
-            ConfigurarCamara();
-            ConfigurarIluminacion();
 
-            // Crear el escenario usando el builder pattern
-            CrearEscenarioConBuilder();
+            // Crear escena directamente
+            CrearEscenaSimple();
 
-            // Preparar para renderizado
+            // Preparar rendering
             PrepararBuffersRenderizado();
-
-            Console.WriteLine("Escenario creado:");
-            Console.WriteLine(escenario.ObtenerEstadisticas());
         }
 
-        private void ConfigurarOpenGL()
-        {
-            if (config.Rendering.EnableDepthTest)
-                GL.Enable(EnableCap.DepthTest);
-
-            if (config.Rendering.EnableCullFace)
-            {
-                GL.Enable(EnableCap.CullFace);
-                GL.CullFace(CullFaceMode.Back);
-            }
-
-            var bg = config.Rendering.BackgroundColor;
-            GL.ClearColor(bg.X, bg.Y, bg.Z, 1.0f);
-        }
-
-        private void ConfigurarCamara()
-        {
-            var camConfig = config.Camera;
-            camera = new CameraSettings
-            {
-                Position = camConfig.InitialPosition,
-                Target = camConfig.InitialTarget,
-                Up = camConfig.UpVector,
-                FOV = MathHelper.DegreesToRadians(camConfig.FieldOfView),
-                AspectRatio = (float)Size.X / Size.Y,
-                NearPlane = camConfig.NearPlane,
-                FarPlane = camConfig.FarPlane
-            };
-        }
-
-        private void ConfigurarIluminacion()
-        {
-            var lightConfig = config.Lighting;
-            lighting = new LightingSettings
-            {
-                Position = lightConfig.Position,
-                Color = lightConfig.Color,
-                Intensity = lightConfig.Intensity
-            };
-        }
-
-        private void CrearEscenarioConBuilder()
+        private void CrearEscenaSimple()
         {
             escenario = new Escenario("Setup de Computadora");
             renderObjects = new Dictionary<string, ObjectRenderData>();
 
-            // Usar el ObjectBuilder con configuraciones del archivo
-            var objectsConfig = config.Objects;
+            // Crear objetos DIRECTAMENTE sin builders
+            var escritorio = CrearEscritorio();
+            var monitor = CrearMonitor();
+            var cpu = CrearCPU();
+            var teclado = CrearTeclado();
 
-            // Crear objetos usando el builder pattern
-            var escritorio = ObjectBuilder.Presets
-                .Escritorio(objectsConfig.Escritorio.Position)
-                .Construir();
-
-            var monitor = ObjectBuilder.Presets
-                .Monitor(objectsConfig.Monitor.Position)
-                .Construir();
-
-            var cpu = ObjectBuilder.Presets
-                .CPU(objectsConfig.CPU.Position)
-                .Construir();
-
-            var teclado = ObjectBuilder.Presets
-                .Teclado(objectsConfig.Teclado.Position)
-                .Construir();
-
-            // Ejemplo de cómo crear objetos personalizados con el builder
-            var objetoPersonalizado = ObjectBuilder
-                .Crear("ObjetoCustom", new Vector3(2f, 0f, 2f), new Vector3(0.5f, 0.2f, 0.8f))
-                .AgregarParte("Cuerpo", Vector3.Zero, new Vector3(0.5f, 0.5f, 0.5f), new Vector3(0.8f, 0.2f, 0.2f))
-                .AgregarParte("Antena", new Vector3(0f, 0.3f, 0f), new Vector3(0.05f, 0.3f, 0.05f), new Vector3(0.9f, 0.9f, 0.1f))
-                .Construir();
-
-            // Agregar al escenario
             escenario.AgregarObjetos(escritorio, monitor, cpu, teclado);
-
-            // Solo agregar el objeto personalizado si está habilitado en configuración
-            if (config.Objects.Monitor.Visible) // Usando como ejemplo, podrías agregar más flags
-            {
-                escenario.AgregarObjetos(objetoPersonalizado);
-            }
         }
 
-        // Método alternativo para crear objetos usando datos del config
-        private Objeto CrearObjetoDesdeConfig(string tipo)
+        // Métodos simples para crear objetos - SIN BUILDERS
+        private Objeto CrearEscritorio()
         {
-            return tipo.ToLower() switch
-            {
-                "monitor" => ObjectBuilder.Presets.Monitor(config.Objects.Monitor.Position).Construir(),
-                "cpu" => ObjectBuilder.Presets.CPU(config.Objects.CPU.Position).Construir(),
-                "teclado" => ObjectBuilder.Presets.Teclado(config.Objects.Teclado.Position).Construir(),
-                "escritorio" => ObjectBuilder.Presets.Escritorio(config.Objects.Escritorio.Position).Construir(),
-                _ => throw new ArgumentException($"Tipo de objeto desconocido: {tipo}")
-            };
+            var escritorio = new Objeto("Escritorio");
+            escritorio.Posicion = new Vector3(0f, -1.5f, 0f);
+            escritorio.ColorBase = new Vector3(0.4f, 0.3f, 0.2f);
+
+            var superficie = Parte.CrearCubo("Superficie", Vector3.Zero, new Vector3(5.0f, 0.1f, 3.0f), new Vector3(0.4f, 0.3f, 0.2f));
+            escritorio.AgregarParte(superficie);
+
+            return escritorio;
+        }
+
+        private Objeto CrearMonitor()
+        {
+            var monitor = new Objeto("Monitor");
+            monitor.Posicion = new Vector3(0f, -0.3f, -0.3f);
+            monitor.ColorBase = new Vector3(0.15f, 0.15f, 0.15f);
+
+            var pantalla = Parte.CrearCubo("Pantalla", new Vector3(0f, 0f, 0f), new Vector3(2.4f, 1.5f, 0.06f), new Vector3(0.02f, 0.02f, 0.05f));
+            var base_monitor = Parte.CrearCubo("Base", new Vector3(0f, -0.8f, 0f), new Vector3(0.6f, 0.2f, 0.4f), new Vector3(0.2f, 0.2f, 0.2f));
+
+            monitor.AgregarPartes(pantalla, base_monitor);
+            return monitor;
+        }
+
+        private Objeto CrearCPU()
+        {
+            var cpu = new Objeto("CPU");
+            cpu.Posicion = new Vector3(1.8f, -0.8f, -0.2f);
+            cpu.ColorBase = new Vector3(0.25f, 0.25f, 0.3f);
+
+            var carcasa = Parte.CrearCubo("Carcasa", new Vector3(0f, 0f, 0f), new Vector3(0.5f, 1.6f, 0.8f), new Vector3(0.2f, 0.2f, 0.25f));
+            var boton = Parte.CrearCubo("BotonEncendido", new Vector3(-0.15f, -0.5f, 0.43f), new Vector3(0.05f, 0.05f, 0.01f), new Vector3(0.8f, 0.2f, 0.2f));
+
+            cpu.AgregarPartes(carcasa, boton);
+            return cpu;
+        }
+
+        private Objeto CrearTeclado()
+        {
+            var teclado = new Objeto("Teclado");
+            teclado.Posicion = new Vector3(0f, -1.4f, 0.8f);
+            teclado.ColorBase = new Vector3(0.05f, 0.05f, 0.05f);
+
+            var base_teclado = Parte.CrearCubo("BaseTeclado", new Vector3(0f, 0f, 0f), new Vector3(2.8f, 0.08f, 0.8f), new Vector3(0.05f, 0.05f, 0.05f));
+            var barra_espacio = Parte.CrearCubo("BarraEspaciadora", new Vector3(0f, 0.06f, 0.2f), new Vector3(1.2f, 0.025f, 0.1f), new Vector3(0.15f, 0.15f, 0.15f));
+
+            teclado.AgregarPartes(base_teclado, barra_espacio);
+            return teclado;
         }
 
         private void InicializarShaders()
         {
-            // Los shaders ahora usan valores de configuración para iluminación
-            string vertexShader = @"
-                #version 330 core
-                layout (location = 0) in vec3 aPosition;
-                layout (location = 1) in vec3 aNormal;
-                
-                uniform mat4 model;
-                uniform mat4 view;
-                uniform mat4 projection;
-                uniform mat3 normalMatrix;
-                
-                out vec3 FragPos;
-                out vec3 Normal;
-                
-                void main()
-                {
-                    FragPos = vec3(model * vec4(aPosition, 1.0));
-                    Normal = normalMatrix * aNormal;
-                    gl_Position = projection * view * vec4(FragPos, 1.0);
-                }";
+            string vertexShader = @"#version 330 core
+            layout (location = 0) in vec3 aPosition;
+            layout (location = 1) in vec3 aNormal;
 
-            string fragmentShader = @"
-                #version 330 core
-                out vec4 FragColor;
-                
-                in vec3 FragPos;
-                in vec3 Normal;
-                
-                uniform vec3 objectColor;
-                uniform vec3 lightPos;
-                uniform vec3 lightColor;
-                uniform vec3 viewPos;
-                uniform float ambientStrength;
-                uniform float specularStrength;
-                uniform float shininess;
-                
-                void main()
-                {
-                    vec3 ambient = ambientStrength * lightColor;
-                    
-                    vec3 norm = normalize(Normal);
-                    vec3 lightDir = normalize(lightPos - FragPos);
-                    float diff = max(dot(norm, lightDir), 0.0);
-                    vec3 diffuse = diff * lightColor;
-                    
-                    vec3 viewDir = normalize(viewPos - FragPos);
-                    vec3 reflectDir = reflect(-lightDir, norm);
-                    float spec = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
-                    vec3 specular = specularStrength * spec * lightColor;
-                    
-                    vec3 result = (ambient + diffuse + specular) * objectColor;
-                    FragColor = vec4(result, 1.0);
-                }";
+            uniform mat4 model;
+            uniform mat4 view;
+            uniform mat4 projection;
+            uniform mat3 normalMatrix;
+
+            out vec3 FragPos;
+            out vec3 Normal;
+
+            void main()
+            {
+                FragPos = vec3(model * vec4(aPosition, 1.0));
+                Normal = normalMatrix * aNormal;
+                gl_Position = projection * view * vec4(FragPos, 1.0);
+            }";
+
+                        string fragmentShader = @"#version 330 core
+            out vec4 FragColor;
+
+            in vec3 FragPos;
+            in vec3 Normal;
+
+            uniform vec3 objectColor;
+            uniform vec3 lightPos;
+            uniform vec3 lightColor;
+            uniform vec3 viewPos;
+
+            void main()
+            {
+                vec3 ambient = 0.4 * vec3(1.0, 1.0, 1.0);
+    
+                vec3 norm = normalize(Normal);
+                vec3 lightDir = normalize(lightPos - FragPos);
+                float diff = max(dot(norm, lightDir), 0.0);
+                vec3 diffuse = diff * vec3(1.0, 1.0, 1.0);
+    
+                vec3 viewDir = normalize(viewPos - FragPos);
+                vec3 reflectDir = reflect(-lightDir, norm);
+                float spec = pow(max(dot(viewDir, reflectDir), 0.0), 64.0);
+                vec3 specular = 0.6 * spec * vec3(1.0, 1.0, 1.0);
+    
+                vec3 result = (ambient + diffuse + specular) * objectColor;
+                FragColor = vec4(result, 1.0);
+            }";
 
             shaderProgram = CrearProgramaShader(vertexShader, fragmentShader);
         }
 
         protected override void OnRenderFrame(FrameEventArgs args)
         {
-            rotationTime += (float)args.Time * config.Rendering.RotationSpeed;
+            rotationTime += (float)args.Time * 0.5f; // velocidad de rotación fija
 
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
             GL.UseProgram(shaderProgram);
 
-            // Configurar matrices de cámara
-            Matrix4 view = Matrix4.LookAt(camera.Position, camera.Target, camera.Up);
+            // Matrices de cámara
+            Matrix4 view = Matrix4.LookAt(cameraPos, cameraTarget, Vector3.UnitY);
             Matrix4 projection = Matrix4.CreatePerspectiveFieldOfView(
-                camera.FOV, camera.AspectRatio, camera.NearPlane, camera.FarPlane);
+                MathHelper.DegreesToRadians(45f), (float)Size.X / Size.Y, 0.1f, 100f);
 
             SetUniform("view", view);
             SetUniform("projection", projection);
-            SetUniform("lightPos", lighting.Position);
-            SetUniform("lightColor", lighting.Color);
-            SetUniform("viewPos", camera.Position);
-
-            // Usar valores de configuración para iluminación
-            SetUniform("ambientStrength", config.Lighting.AmbientStrength);
-            SetUniform("specularStrength", config.Lighting.SpecularStrength);
-            SetUniform("shininess", config.Lighting.Shininess);
+            SetUniform("lightPos", lightPos);
+            SetUniform("lightColor", Vector3.One);
+            SetUniform("viewPos", cameraPos);
 
             // Renderizar cada objeto
             foreach (var kvp in renderObjects)
             {
                 var objData = kvp.Value;
-                var objeto = escenario.BuscarObjeto(kvp.Key);
 
-                // Matriz de transformación con rotación suave del escenario
                 Matrix4 model = Matrix4.CreateRotationY(rotationTime * 0.2f) *
                                Matrix4.CreateTranslation(objData.Position);
 
@@ -275,83 +215,44 @@ namespace Opentk_2222
         {
             var input = KeyboardState;
             float deltaTime = (float)args.Time;
+            float speed = 3.0f * deltaTime; // velocidad fija
 
-            // Controles de cámara usando configuración
-            ProcesarInputCamara(input, deltaTime);
+            // Controles de cámara simples
+            Vector3 forward = Vector3.Normalize(cameraTarget - cameraPos);
+            Vector3 right = Vector3.Normalize(Vector3.Cross(forward, Vector3.UnitY));
 
-            // Salir con la tecla configurada
-            if (input.IsKeyPressed(ParseKey(config.Input.Exit)))
-                Close();
+            if (input.IsKeyDown(Keys.W)) cameraPos += forward * speed;
+            if (input.IsKeyDown(Keys.S)) cameraPos -= forward * speed;
+            if (input.IsKeyDown(Keys.A)) cameraPos -= right * speed;
+            if (input.IsKeyDown(Keys.D)) cameraPos += right * speed;
+            if (input.IsKeyDown(Keys.Q)) cameraPos += Vector3.UnitY * speed;
+            if (input.IsKeyDown(Keys.E)) cameraPos -= Vector3.UnitY * speed;
 
-            // Tecla F1 para recargar configuración
-            if (input.IsKeyPressed(Keys.F1))
+            // Rotación de cámara
+            if (input.IsKeyDown(Keys.Left))
             {
-                ConfigManager.Reload();
-                Console.WriteLine("Configuración recargada!");
+                Matrix4 rotation = Matrix4.CreateRotationY(1.5f * deltaTime);
+                cameraPos = Vector3.TransformPosition(cameraPos - cameraTarget, rotation) + cameraTarget;
+            }
+            if (input.IsKeyDown(Keys.Right))
+            {
+                Matrix4 rotation = Matrix4.CreateRotationY(-1.5f * deltaTime);
+                cameraPos = Vector3.TransformPosition(cameraPos - cameraTarget, rotation) + cameraTarget;
             }
 
-            // Tecla F2 para guardar configuración actual
-            if (input.IsKeyPressed(Keys.F2))
-            {
-                ConfigManager.Save();
-                Console.WriteLine("Configuración guardada!");
-            }
+            if (input.IsKeyPressed(Keys.Escape)) Close();
 
             base.OnUpdateFrame(args);
-        }
-
-        private void ProcesarInputCamara(KeyboardState input, float deltaTime)
-        {
-            float speed = config.Camera.MovementSpeed * deltaTime;
-            Vector3 forward = Vector3.Normalize(camera.Target - camera.Position);
-            Vector3 right = Vector3.Normalize(Vector3.Cross(forward, camera.Up));
-
-            var inputConfig = config.Input;
-
-            if (input.IsKeyDown(ParseKey(inputConfig.MoveForward)))
-                camera.Position += forward * speed;
-            if (input.IsKeyDown(ParseKey(inputConfig.MoveBackward)))
-                camera.Position -= forward * speed;
-            if (input.IsKeyDown(ParseKey(inputConfig.MoveLeft)))
-                camera.Position -= right * speed;
-            if (input.IsKeyDown(ParseKey(inputConfig.MoveRight)))
-                camera.Position += right * speed;
-            if (input.IsKeyDown(ParseKey(inputConfig.MoveUp)))
-                camera.Position += camera.Up * speed;
-            if (input.IsKeyDown(ParseKey(inputConfig.MoveDown)))
-                camera.Position -= camera.Up * speed;
-
-            // Rotación de cámara con las teclas configuradas
-            if (input.IsKeyDown(ParseKey(inputConfig.RotateLeft)))
-            {
-                float rotSpeed = config.Camera.RotationSpeed * deltaTime;
-                Matrix4 rotation = Matrix4.CreateRotationY(rotSpeed);
-                camera.Position = Vector3.TransformPosition(camera.Position - camera.Target, rotation) + camera.Target;
-            }
-            if (input.IsKeyDown(ParseKey(inputConfig.RotateRight)))
-            {
-                float rotSpeed = config.Camera.RotationSpeed * deltaTime;
-                Matrix4 rotation = Matrix4.CreateRotationY(-rotSpeed);
-                camera.Position = Vector3.TransformPosition(camera.Position - camera.Target, rotation) + camera.Target;
-            }
-        }
-
-        // Método helper para parsear teclas desde string
-        private Keys ParseKey(string keyString)
-        {
-            return Enum.TryParse<Keys>(keyString, out Keys key) ? key : Keys.Escape;
         }
 
         protected override void OnResize(ResizeEventArgs e)
         {
             base.OnResize(e);
             GL.Viewport(0, 0, e.Width, e.Height);
-            camera.AspectRatio = (float)e.Width / e.Height;
         }
 
         protected override void OnUnload()
         {
-            // Limpiar recursos OpenGL
             foreach (var objData in renderObjects.Values)
             {
                 GL.DeleteVertexArray(objData.VAO);
@@ -363,7 +264,6 @@ namespace Opentk_2222
             base.OnUnload();
         }
 
-        // Método para preparar buffers de renderizado
         private void PrepararBuffersRenderizado()
         {
             foreach (var objeto in escenario.Objetos)
@@ -371,35 +271,28 @@ namespace Opentk_2222
                 var vertices = objeto.ObtenerVerticesParaRender();
                 var indices = objeto.ObtenerIndicesParaRender();
 
-                // Crear buffers OpenGL
                 int vao = GL.GenVertexArray();
                 int vbo = GL.GenBuffer();
                 int ebo = GL.GenBuffer();
 
                 GL.BindVertexArray(vao);
 
-                // Buffer de vértices
                 GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
                 GL.BufferData(BufferTarget.ArrayBuffer, vertices.Count * sizeof(float),
                              vertices.ToArray(), BufferUsageHint.StaticDraw);
 
-                // Buffer de índices
                 GL.BindBuffer(BufferTarget.ElementArrayBuffer, ebo);
                 GL.BufferData(BufferTarget.ElementArrayBuffer, indices.Count * sizeof(uint),
                              indices.ToArray(), BufferUsageHint.StaticDraw);
 
-                // Configurar atributos de vértices
-                // Posición (location = 0)
                 GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 6 * sizeof(float), 0);
                 GL.EnableVertexArrayAttrib(vao, 0);
 
-                // Normal (location = 1)
                 GL.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, 6 * sizeof(float), 3 * sizeof(float));
                 GL.EnableVertexArrayAttrib(vao, 1);
 
                 GL.BindVertexArray(0);
 
-                // Guardar datos de renderizado
                 renderObjects[objeto.Nombre] = new ObjectRenderData
                 {
                     VAO = vao,
@@ -414,7 +307,7 @@ namespace Opentk_2222
             }
         }
 
-        // Métodos auxiliares para shaders
+        // Métodos helper para shaders
         private int CrearProgramaShader(string vertexSource, string fragmentSource)
         {
             int vertexShader = CompileShader(vertexSource, ShaderType.VertexShader);
@@ -472,13 +365,6 @@ namespace Opentk_2222
             GL.Uniform3(location, vector);
         }
 
-        private void SetUniform(string name, float value)
-        {
-            int location = GL.GetUniformLocation(shaderProgram, name);
-            GL.Uniform1(location, value);
-        }
-
-        // Estructuras auxiliares para organización
         public struct ObjectRenderData
         {
             public int VAO;
@@ -489,24 +375,6 @@ namespace Opentk_2222
             public Vector3 Position;
             public Vector3 Rotation;
             public Vector3 Scale;
-        }
-
-        public struct CameraSettings
-        {
-            public Vector3 Position;
-            public Vector3 Target;
-            public Vector3 Up;
-            public float FOV;
-            public float AspectRatio;
-            public float NearPlane;
-            public float FarPlane;
-        }
-
-        public struct LightingSettings
-        {
-            public Vector3 Position;
-            public Vector3 Color;
-            public float Intensity;
         }
     }
 }
