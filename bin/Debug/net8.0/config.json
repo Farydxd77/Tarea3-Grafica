@@ -1,0 +1,161 @@
+{
+  "rendering": {
+    "windowWidth": 1024,
+    "windowHeight": 768,
+    "windowTitle": "Sistema Jer\u00E1rquico 3D - Monitor, CPU y Teclado",
+    "backgroundColor": {
+      "x": 0.95,
+      "y": 0.95,
+      "z": 0.95
+    },
+    "rotationSpeed": 0.5,
+    "enableVSync": true,
+    "enableDepthTest": true,
+    "enableCullFace": true
+  },
+  "camera": {
+    "initialPosition": {
+      "x": 3,
+      "y": 2,
+      "z": 4
+    },
+    "initialTarget": {
+      "x": 0,
+      "y": -0.5,
+      "z": 0
+    },
+    "upVector": {
+      "x": 0,
+      "y": 1,
+      "z": 0
+    },
+    "fieldOfView": 45,
+    "nearPlane": 0.1,
+    "farPlane": 100,
+    "movementSpeed": 3,
+    "rotationSpeed": 1.5
+  },
+  "lighting": {
+    "position": {
+      "x": 2,
+      "y": 4,
+      "z": 2
+    },
+    "color": {
+      "x": 1,
+      "y": 1,
+      "z": 1
+    },
+    "intensity": 1,
+    "ambientStrength": 0.4,
+    "specularStrength": 0.6,
+    "shininess": 64
+  },
+  "input": {
+    "moveForward": "W",
+    "moveBackward": "S",
+    "moveLeft": "A",
+    "moveRight": "D",
+    "moveUp": "Q",
+    "moveDown": "E",
+    "rotateLeft": "Left",
+    "rotateRight": "Right",
+    "exit": "Escape",
+    "invertMouseY": false,
+    "mouseSensitivity": 1
+  },
+  "objects": {
+    "monitor": {
+      "position": {
+        "x": 0,
+        "y": -0.3,
+        "z": -0.3
+      },
+      "baseColor": {
+        "x": 0.15,
+        "y": 0.15,
+        "z": 0.15
+      },
+      "rotation": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "scale": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "visible": true
+    },
+    "cpu": {
+      "position": {
+        "x": 1.8,
+        "y": -0.8,
+        "z": -0.2
+      },
+      "baseColor": {
+        "x": 0.25,
+        "y": 0.25,
+        "z": 0.3
+      },
+      "rotation": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "scale": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "visible": true
+    },
+    "teclado": {
+      "position": {
+        "x": 0,
+        "y": -1.4,
+        "z": 0.8
+      },
+      "baseColor": {
+        "x": 0.05,
+        "y": 0.05,
+        "z": 0.05
+      },
+      "rotation": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "scale": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "visible": true
+    },
+    "escritorio": {
+      "position": {
+        "x": 0,
+        "y": -1.5,
+        "z": 0
+      },
+      "baseColor": {
+        "x": 0.4,
+        "y": 0.3,
+        "z": 0.2
+      },
+      "rotation": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "scale": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "visible": true
+    }
+  }
+}
