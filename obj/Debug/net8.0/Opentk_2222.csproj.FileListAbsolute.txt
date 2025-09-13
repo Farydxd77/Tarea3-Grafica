@@ -30,3 +30,4 @@ C:\Users\modos\source\repos\Opentk_2222\Opentk_2222\obj\Debug\net8.0\Opentk_2222
 C:\Users\modos\source\repos\Opentk_2222\Opentk_2222\obj\Debug\net8.0\Opentk_2.EF17C6D0.Up2Date
 C:\Users\modos\source\repos\Opentk_2222\Opentk_2222\bin\Debug\net8.0\StbImageSharp.dll
 C:\Users\modos\source\repos\Opentk_2222\Opentk_2222\obj\Debug\net8.0\Opentk_2222.sourcelink.json
+C:\Users\modos\source\repos\Opentk_2222\Opentk_2222\bin\Debug\net8.0\Newtonsoft.Json.dll
